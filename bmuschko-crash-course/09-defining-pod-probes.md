@@ -1,0 +1,54 @@
+## Defining a Pod’s Readiness and Liveness Probe
+
+1. Create a new Pod named `hello` with the image `bmuschko/nodejs-hello-world:1.0.0` that exposes the port 3000. Provide the name `nodejs-port` for the container port.
+
+kubectl run hello --image=bmuschko/nodejs-hello-world:1.0.0 --dry=run=client -o yaml > pod.yaml
+
+Add:
+
+...
+spec:
+    containers:
+        ports:
+        - containerPort: 8300
+          name: nodejs-port
+...
+
+kubectl create -f pod.yaml
+
+2. Add a Readiness Probe that checks the URL path / on the port referenced with the name `nodejs-port` after a 2 seconds delay. You do not have to define the period interval.
+
+Add:
+
+...
+spec:
+    containers:
+        readinessProbe:
+            httpGet:
+                path: /
+                port: nodejs-port
+            initialDelaySeconds: 2
+...
+
+3. Add a Liveness Probe that verifies that the app is up and running every 8 seconds by checking the URL path / on the port referenced with the name `nodejs-port`. The probe should start with a 5 seconds delay.
+
+Add:
+
+...
+spec:
+    containers:
+        livenessProbe:
+            httpGet:
+                path: /
+                port: nodejs-port
+            initialDelaySeconds: 5
+...
+
+4. Shell into container and curl `localhost:3000`. Write down the output. Exit the container.
+
+kubectl exec -it hello -- /bin/sh
+curl localhost:3000
+
+5. Retrieve the logs from the container. Write down the output.
+
+kubectl logs hello > logs.txt
